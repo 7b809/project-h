@@ -58,7 +58,7 @@ def get_total_pages(url, browser):
     html_content = browser.page_source
     soup = BeautifulSoup(html_content, 'html.parser')
     last_page_link = soup.find('a', class_="last")
-    total_pages = last_page_link.get("href").strip("/").split("/")[-1] if last_page_link else 1  # Default to 1 if not found
+    total_pages = last_page_link.get("href").strip("/").split("/")[-1] if last_page_link else 1000  # Default to 1 if not found
 
     # Set this to your logic for calculating total pages
     return int(total_pages)
