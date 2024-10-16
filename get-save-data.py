@@ -34,20 +34,4 @@ html_content = browser.page_source
 soup = BeautifulSoup(html_content, 'html.parser')
 
 
-total_page = soup.find('a', class_="last").get("href").strip("/").split("/")[-1]
-# Find all divs with the class "manga-item loop-item group/manga-item"
-manga_items = soup.find_all('div', class_="manga-item loop-item group/manga-item")
-
-# Prepare data for JSON
-data = []
-
-# Loop through each div and save its inner HTML
-for idx, item in enumerate(manga_items, 1):
-    inner_html = item.decode_contents()  # Get the inner HTML of the div
-    data.append({"serial_no": idx, "html_data": inner_html})  # Append to the data list
-
-print(data[0:10])
-# Close the browser
-browser.quit()
-
-print(f"Saved {len(manga_items)} items to d.json.")
+print(soup.pretiffy())
