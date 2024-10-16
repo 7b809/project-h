@@ -8,7 +8,7 @@ from selenium.webdriver.chrome.options import Options as ChromeOptions
 from pymongo import MongoClient
 from manga_extractor import extract_manga_data
 import os
-chrome_driver_path = r" chromedriver"
+chrome_driver_path = r"chromedriver"
 
 chrome_options = ChromeOptions()
 chrome_options.add_argument('--headless')
