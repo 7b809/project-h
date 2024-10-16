@@ -34,4 +34,4 @@ html_content = browser.page_source
 soup = BeautifulSoup(html_content, 'html.parser')
 
 
-print(soup.pretiffy())
+print(soup)
