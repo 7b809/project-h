@@ -23,7 +23,7 @@ cloudinary.config(
 mongo_url = lst[0]
 client = MongoClient(mongo_url)
 db = client['project-h']
-collection = db['api-data']
+collection = db['api-img']
 
 # Define paths for ZIP, extracted JSON, and local image storage
 zip_file_path = 'updated_data.zip'
