@@ -23,7 +23,7 @@ cloudinary.config(
 mongo_url = lst[0]
 client = MongoClient(mongo_url)
 db = client['project-h']
-collection = db['api-img']
+collection = db['api-img1']
 
 # Define paths for ZIP, extracted JSON, and local image storage
 zip_file_path = 'updated_data.zip'
@@ -41,7 +41,7 @@ with zipfile.ZipFile(zip_file_path, 'r') as zip_ref:
 # Load data from the extracted JSON file
 with open(json_file_path, 'r', encoding='utf-8') as f:
     data = json.load(f)
-    data = data[0:5]
+    data = data
 
 # Function to download, compress, and save images
 def save_compressed_image(image_data, file_path, target_size_kb=60):
