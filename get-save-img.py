@@ -38,10 +38,11 @@ os.makedirs(image_folder, exist_ok=True)
 with zipfile.ZipFile(zip_file_path, 'r') as zip_ref:
     zip_ref.extractall(extract_folder)
 
-# Load data from the extracted JSON file
+# Load data from the extracted JSON file and start from image 28163 onwards
 with open(json_file_path, 'r', encoding='utf-8') as f:
     data = json.load(f)
-    data =data[28162:]
+    start_image_serial = 28163  # Adjust this to the correct starting number
+    data = data[start_image_serial - 1:]  # Continue from image 28163
 
 # Function to download, compress, and save images
 def save_compressed_image(image_data, file_path, target_size_kb=60):
@@ -97,7 +98,7 @@ while start_index < total_images:
 
     # Step 1: Download and compress images
     uploaded_urls = []  # Store URLs for the current batch
-    for index, entry in enumerate(img_list, start=start_index):
+    for index, entry in enumerate(img_list, start=start_image_serial + start_index):
         img_src = entry['data']['image']['src']
         try:
             res = requests.get(img_src)
