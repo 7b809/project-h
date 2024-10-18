@@ -103,7 +103,7 @@ while start_index < total_images:
 
     # Step 1: Download and compress images
     uploaded_urls = []  # Store URLs for the current batch
-    for index, entry in enumerate(img_list, start=start_image_serial + start_index):
+    for index, entry in enumerate(img_list, start=start_index):
         img_src = entry['data']['image']['src']
         try:
             res = requests.get(img_src)
