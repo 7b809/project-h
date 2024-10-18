@@ -41,6 +41,7 @@ with zipfile.ZipFile(zip_file_path, 'r') as zip_ref:
 # Load data from the extracted JSON file
 with open(json_file_path, 'r', encoding='utf-8') as f:
     data = json.load(f)
+    data =data[28162:]
 
 # Function to download, compress, and save images
 def save_compressed_image(image_data, file_path, target_size_kb=60):
