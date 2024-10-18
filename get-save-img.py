@@ -41,10 +41,9 @@ with zipfile.ZipFile(zip_file_path, 'r') as zip_ref:
 # Load data from the extracted JSON file and start from image 28163 onwards
 with open(json_file_path, 'r', encoding='utf-8') as f:
     data = json.load(f)
-    start_image_serial = 28163  # Adjust this to the correct starting number
-    data = data[start_image_serial - 1:]  # Continue from image 28163
+    
 
-# Function to download, compress, and save images
+# Function to download, compress, and save images with custom naming based on URL
 def save_compressed_image(image_data, file_path, target_size_kb=60):
     img = Image.open(BytesIO(image_data))
     quality = 50
@@ -57,13 +56,19 @@ def save_compressed_image(image_data, file_path, target_size_kb=60):
             print(f"Unable to compress {file_path} to {target_size_kb} KB")
             break
 
+# Function to extract image name from the URL (e.g., 'hr_229605' from the example URL)
+def extract_image_name_from_url(url):
+    # Extract the filename from the URL (e.g., 'hr_229605.jpg')
+    image_name = url.split('/')[-1]  # Get the last part of the URL
+    return image_name.split('.')[0]  # Remove the file extension (e.g., '.jpg')
+
 # Function to upload images to Cloudinary and get URLs and sizes
 def upload_images(folder_path):
     img_urls = []
     for img_file in os.listdir(folder_path):
         img_path = os.path.join(folder_path, img_file)
         try:
-            response = cloudinary.uploader.upload(img_path, public_id=img_file.split('.')[0])  # Use the original serial number as public_id
+            response = cloudinary.uploader.upload(img_path, public_id=img_file.split('.')[0])  # Use the extracted name as public_id
             img_url = response['secure_url']
             img_serial_no = img_file.split('.')[0]  # Extract serial number from file name
             img_size_kb = response['bytes'] / 1024  # Get image size in KB
@@ -103,9 +108,11 @@ while start_index < total_images:
         try:
             res = requests.get(img_src)
             res.raise_for_status()
-            img_filename = os.path.join(image_folder, f'{index + 1}.jpg')
+            # Extract image name from the URL (e.g., 'hr_229605')
+            img_name = extract_image_name_from_url(img_src)
+            img_filename = os.path.join(image_folder, f'{img_name}.jpg')
             save_compressed_image(res.content, img_filename)
-            print(f"Downloaded and compressed image {index + 1} as {img_filename}")
+            print(f"Downloaded and compressed image {img_name} as {img_filename}")
         except Exception as e:
             print(f"Failed to download image {index + 1}: {e}")
 
