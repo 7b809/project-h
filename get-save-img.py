@@ -45,7 +45,7 @@ with zipfile.ZipFile(zip_file_path, 'r') as zip_ref:
 # Load data from the extracted JSON file and start from image 28163 onwards
 with open(json_file_path, 'r', encoding='utf-8') as f:
     data = json.load(f)
-    data = data[20000:40000]
+    data = data[40000:]
     
 
 # Function to download, compress, and save images with custom naming based on URL
