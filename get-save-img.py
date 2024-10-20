@@ -44,6 +44,8 @@ exports.handler = async (event, context) => {
                 statusCode: 404,
                 headers: {
                     'Access-Control-Allow-Origin': '*', // Allow all origins
+                 'Access-Control-Allow-Methods': 'GET, OPTIONS', // Allow GET and OPTIONS
+                'Access-Control-Allow-Headers': 'Content-Type', // Allow content type headers
                 },
                 body: JSON.stringify({ error: 'No documents found for this page' }),
             };
@@ -53,6 +55,8 @@ exports.handler = async (event, context) => {
             statusCode: 200,
             headers: {
                 'Access-Control-Allow-Origin': '*', // Allow all origins
+             'Access-Control-Allow-Methods': 'GET, OPTIONS', // Allow GET and OPTIONS
+                'Access-Control-Allow-Headers': 'Content-Type', // Allow content type headers
                 'Content-Type': 'application/json', // Set content type to JSON
             },
             body: JSON.stringify(documents), 
@@ -62,6 +66,8 @@ exports.handler = async (event, context) => {
             statusCode: 500,
             headers: {
                 'Access-Control-Allow-Origin': '*', // Allow all origins
+             'Access-Control-Allow-Methods': 'GET, OPTIONS', // Allow GET and OPTIONS
+                'Access-Control-Allow-Headers': 'Content-Type', // Allow content type headers
             },
             body: JSON.stringify({ error: 'Failed to fetch data' }),
         };
