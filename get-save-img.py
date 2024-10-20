@@ -3,10 +3,10 @@ import cloudinary
 import cloudinary.api
 import json
 import os
+
 # Load environment variables for API data
 api_data = os.getenv("API_DATA")
 lst = api_data.split("_")
-
 
 # Cloudinary setup (replace with your credentials)
 cloudinary.config(
@@ -14,7 +14,6 @@ cloudinary.config(
     api_key=lst[2],     # Your api_key from Cloudinary
     api_secret=lst[3]   # Your api_secret from Cloudinary
 )
-
 
 # Function to fetch and sort images by upload time (ascending order)
 def get_images_sorted_by_time(max_batches=10):
@@ -64,8 +63,8 @@ def get_images_sorted_by_time(max_batches=10):
 def save_images_to_mongodb(image_list, mongodb_url, db_name, collection_name):
     # Connect to MongoDB
     client = MongoClient(mongodb_url)
-    db = client[db_name]
-    collection = db[collection_name]
+    db = client[db_name]  # db_name should be a string
+    collection = db[collection_name]  # collection_name should be a string
 
     data = []
     total_images = len(image_list)
@@ -101,15 +100,12 @@ print("Process started.")
 sorted_images = get_images_sorted_by_time(max_batches=10)  # Limit to 10 batches
 
 if sorted_images:
-   # Cloudinary setup (replace with your credentials)
-
-
     # MongoDB Atlas setup (replace with your MongoDB Atlas URL and database details)
-    mongo_url = lst[0]
-    client = MongoClient(mongo_url)
-    db = client['project-h']
-    collection = db['api-img']
-        # Save images to MongoDB
-    save_images_to_mongodb(sorted_images, mongo_url, db, collection)
+    mongo_url = lst[0]  # MongoDB connection string
+    db_name = 'project-h'  # MongoDB database name
+    collection_name = 'api-img'  # MongoDB collection name
+    
+    # Save images to MongoDB
+    save_images_to_mongodb(sorted_images, mongo_url, db_name, collection_name)
 
 print("Process completed.")
