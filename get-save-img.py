@@ -1,7 +1,6 @@
 from pymongo import MongoClient
 import cloudinary
 import cloudinary.api
-import json
 import os
 
 # Load environment variables for API data
@@ -15,23 +14,22 @@ cloudinary.config(
     api_secret=lst[3]   # Your api_secret from Cloudinary
 )
 
-# Function to fetch and sort images by upload time (ascending order)
-def get_images_sorted_by_time(max_batches=10):
+# Function to fetch all images sorted by upload time (ascending order)
+def get_all_images_sorted_by_time():
     image_list = []
     next_cursor = None  # Used for pagination if there are more results
-    batch_count = 0     # Counter for the number of batches processed
 
     print("Connecting to Cloudinary...")
 
-    # Fetch images from Cloudinary
-    while batch_count < max_batches:
+    # Continuously fetch images until all are retrieved
+    while True:
         try:
             # Fetch resources with 'type=upload' and sort by 'created_at' (ascending)
-            print(f"Fetching batch {batch_count + 1} of images from Cloudinary...")
+            print("Fetching images from Cloudinary...")
             response = cloudinary.api.resources(
                 type='upload',
                 resource_type='image',
-                max_results=500,  # Fetch up to 500 resources per call (adjust if needed)
+                max_results=500,  # Fetch up to 500 resources per call
                 direction=1,  # Ensure ascending order (oldest first)
                 sort_by={'created_at': 'asc'},  # Sort by upload time in ascending order
                 next_cursor=next_cursor  # Used for fetching the next page of results
@@ -42,21 +40,19 @@ def get_images_sorted_by_time(max_batches=10):
 
             print(f"Fetched {len(response['resources'])} images. Total so far: {len(image_list)}")
 
-            batch_count += 1  # Increment the batch counter
-
             # Check if there are more pages to fetch
-            if 'next_cursor' in response and batch_count < max_batches:
+            if 'next_cursor' in response:
                 next_cursor = response['next_cursor']
                 print("Fetching the next batch...")
             else:
-                print("Maximum batch limit reached or no more images to fetch.")
-                break  # No more pages to fetch or batch limit reached
+                print("All images have been fetched.")
+                break  # No more pages to fetch
 
         except cloudinary.exceptions.Error as e:
             print(f"Error fetching resources: {e}")
             break
 
-    # Return the sorted list of images
+    # Return the complete list of images
     return image_list
 
 # Function to save images to MongoDB with serial numbers
@@ -66,8 +62,8 @@ def save_images_to_mongodb(image_list, mongodb_url, db_name, collection_name):
     db = client[db_name]  # db_name should be a string
     collection = db[collection_name]  # collection_name should be a string
 
-    data = []
     total_images = len(image_list)
+    data = []
     
     print(f"Saving {total_images} images to MongoDB collection '{collection_name}'...")
 
@@ -97,15 +93,15 @@ def save_images_to_mongodb(image_list, mongodb_url, db_name, collection_name):
 
 # Start the process
 print("Process started.")
-sorted_images = get_images_sorted_by_time(max_batches=10)  # Limit to 10 batches
+all_images = get_all_images_sorted_by_time()  # Fetch all images
 
-if sorted_images:
+if all_images:
     # MongoDB Atlas setup (replace with your MongoDB Atlas URL and database details)
     mongo_url = lst[0]  # MongoDB connection string
     db_name = 'project-h'  # MongoDB database name
     collection_name = 'api-img'  # MongoDB collection name
     
     # Save images to MongoDB
-    save_images_to_mongodb(sorted_images, mongo_url, db_name, collection_name)
+    save_images_to_mongodb(all_images, mongo_url, db_name, collection_name)
 
 print("Process completed.")
