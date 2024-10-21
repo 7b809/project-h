@@ -1,5 +1,5 @@
 from pymongo import MongoClient
-
+import os
 # Load environment variables for API data
 api_data = os.getenv("API_DATA")
 lst = api_data.split("_")
