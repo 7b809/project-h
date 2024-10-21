@@ -1,4 +1,4 @@
-from pymongo import MongoClient 
+from pymongo import MongoClient
 import os
 
 # Load environment variables for API data
@@ -12,8 +12,10 @@ db = client['project-h']
 original_collection = db['api-img']
 new_collection = db['tags_summary']  # New collection for storing tags and tag data
 result = new_collection.delete_many({})
+
 print(f"{new_collection} collection data deleted")
-# Dictionary to store tags and the corresponding serial numbers (using sets to avoid duplicates)
+
+# Dictionary to store tags and the corresponding serial numbers
 tags_dict = {}
 
 # Step 1: Extract unique tags and build tag-data mapping
@@ -24,16 +26,24 @@ for document in documents:
 
     for tag in tags:
         if tag not in tags_dict:
-            tags_dict[tag] = set()  # Initialize a set for this tag to avoid duplicates
-        tags_dict[tag].add(serial_no)  # Add the serial number to this tag's set
+            tags_dict[tag] = []  # Initialize list for this tag
+        tags_dict[tag].append(serial_no)  # Add the serial number to this tag's list
 
-# Step 2: Convert the sets back to lists for MongoDB insertion
-tag_data_list = [{"tag_name": tag, "serial_number_list": list(serials)} for tag, serials in tags_dict.items()]
+# Step 2: Create the list of unique tags and the tag data
+unique_tags = list(tags_dict.keys())
+tag_data_list = [
+    {
+        "tag_name": tag,
+        "count_serial_number_list": len(serials),  # Add count of serial numbers for the tag
+        "serial_number_list": serials  # List of serial numbers for the tag
+    } 
+    for tag, serials in tags_dict.items()
+]
 
-# Step 3: Create the document and insert it into the new collection
+# Step 3: Insert the result into the new collection
 new_document = {
-    "tags": list(tags_dict.keys()),  # List of unique tags
-    "tag_data": tag_data_list  # List of tag names with unique serial numbers
+    "tags": unique_tags,
+    "tag_data": tag_data_list
 }
 
 # Insert the new document into the new collection
