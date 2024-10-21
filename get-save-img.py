@@ -1,77 +1,40 @@
-const { MongoClient } = require('mongodb');
+from pymongo import MongoClient
 
-exports.handler = async (event, context) => {
-    const mongoUrl = process.env.MONGO_URL; 
-    const client = new MongoClient(mongoUrl);
-    const pathParts = event.path.split('/');
-    const pageNumber = parseInt(pathParts[pathParts.length - 1], 10); 
-    const limit = 40; 
-    const skip = pageNumber ? (pageNumber - 1) * limit : 0; 
+# Load environment variables for API data
+api_data = os.getenv("API_DATA")
+lst = api_data.split("_")
+mongo_url = lst[0]
+# Connect to MongoDB
+client = MongoClient(mongo_url)
+db = client['project-h']
+original_collection = db['api-img']
+new_collection = db['tags_summary']  # New collection for storing tags and tag data
 
-    // Handle OPTIONS request for CORS preflight
-    if (event.httpMethod === 'OPTIONS') {
-        return {
-            statusCode: 204,
-            headers: {
-                'Access-Control-Allow-Origin': '*', // Allow all origins
-                'Access-Control-Allow-Methods': 'GET, OPTIONS', // Allow GET and OPTIONS
-                'Access-Control-Allow-Headers': 'Content-Type', // Allow content type headers
-            },
-        };
-    }
+# Dictionary to store tags and the corresponding serial numbers
+tags_dict = {}
 
-    try {
-        await client.connect();
-        const db = client.db('project-h');
-        const collection = db.collection('api-img');
+# Step 1: Extract unique tags and build tag-data mapping
+documents = original_collection.find()
+for document in documents:
+    serial_no = document['serial_no']
+    tags = document.get('data', {}).get('tags', [])
 
-        let documents;
+    for tag in tags:
+        if tag not in tags_dict:
+            tags_dict[tag] = []  # Initialize list for this tag
+        tags_dict[tag].append(serial_no)  # Add the serial number to this tag's list
 
-        if (isNaN(pageNumber)) {
-            documents = await collection.find({})
-                .project({ _id: 0, title: 1 }) // Only fetch the title field
-                .toArray();
-        } else {
-            documents = await collection.find({})
-                .project({ _id: 0, title: 1 }) // Only fetch the title field
-                .skip(skip)
-                .limit(limit)
-                .toArray();
-        }
+# Step 2: Create the list of unique tags and the tag data
+unique_tags = list(tags_dict.keys())
+tag_data_list = [{"tag_name": tag, "serial_number_list": serials} for tag, serials in tags_dict.items()]
 
-        if (documents.length === 0 && !isNaN(pageNumber)) {
-            return {
-                statusCode: 404,
-                headers: {
-                    'Access-Control-Allow-Origin': '*', // Allow all origins
-                 'Access-Control-Allow-Methods': 'GET, OPTIONS', // Allow GET and OPTIONS
-                'Access-Control-Allow-Headers': 'Content-Type', // Allow content type headers
-                },
-                body: JSON.stringify({ error: 'No documents found for this page' }),
-            };
-        }
+# Step 3: Insert the result into the new collection
+new_document = {
+    "tags": unique_tags,
+    "tag_data": tag_data_list
+}
 
-        return {
-            statusCode: 200,
-            headers: {
-                'Access-Control-Allow-Origin': '*', // Allow all origins
-             'Access-Control-Allow-Methods': 'GET, OPTIONS', // Allow GET and OPTIONS
-                'Access-Control-Allow-Headers': 'Content-Type', // Allow content type headers
-                'Content-Type': 'application/json', // Set content type to JSON
-            },
-            body: JSON.stringify(documents), 
-        };
-    } catch (error) {
-        return {
-            statusCode: 500,
-            headers: {
-                'Access-Control-Allow-Origin': '*', // Allow all origins
-             'Access-Control-Allow-Methods': 'GET, OPTIONS', // Allow GET and OPTIONS
-                'Access-Control-Allow-Headers': 'Content-Type', // Allow content type headers
-            },
-            body: JSON.stringify({ error: 'Failed to fetch data' }),
-        };
-    } finally {
-        await client.close();
-    }
-};
+# Insert the new document into the new collection
+new_collection.insert_one(new_document)
+
+print("Tags and tag data have been inserted into the new collection.")
