@@ -12,6 +12,7 @@ mongo_url = lst[0]
 client = MongoClient(mongo_url)
 db = client['project-h']
 coll = db['tags_summary']
+combined_coll = db['tag_combinations']  # New collection to store all combinations
 
 # Remove all collections except 'api-img' and 'tags_summary'
 protected_collections = ['api-img', 'tags_summary']
@@ -44,23 +45,18 @@ if doc:
             # Find the common serial numbers
             common_serial_numbers = intersect_lists(serial_lists)
             
-            # If common serial numbers exist, store in new collection
+            # If common serial numbers exist, store in the consolidated collection
             if common_serial_numbers:
-                tag_combination_name = "_".join(combination)  # Collection name based on tag combination
-                collection_name = tag_combination_name.replace(" ", "_")  # Replace spaces with underscores
+                tag_combination_name = "_".join(combination)  # Name of tag combination
                 
-                # Prepare the data to insert
-                document_to_insert = {
+                # Insert the data into the consolidated collection
+                combined_coll.insert_one({
                     "tag_name_combination": tag_combination_name,
-                    "total_count": len(common_serial_numbers), # Add total_count field
+                                        "total_count": len(common_serial_numbers),  # Add total_count field
 
                     "common_serial_number_list": common_serial_numbers
-                }
-                
-                # Insert the data into the new collection
-                new_coll = db[collection_name]  # Create or access the new collection
-                new_coll.insert_one(document_to_insert)
+                })
         
         print(f"Processed combinations of size {r} out of {len(tags)} tags")
 
-print("Done processing and saved each tag combination into its respective MongoDB collection.")
+print("Done processing and saved all tag combinations into 'tag_combinations' collection.")
