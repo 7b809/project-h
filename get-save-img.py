@@ -13,6 +13,15 @@ client = MongoClient(mongo_url)
 db = client['project-h']
 coll = db['tags_summary']
 
+# Remove all collections except 'api-img' and 'tags_summary'
+protected_collections = ['api-img', 'tags_summary']
+all_collections = db.list_collection_names()
+
+for collection_name in all_collections:
+    if collection_name not in protected_collections:
+        db[collection_name].drop()  # Drop the collection
+        print(f"Dropped collection: {collection_name}")
+
 # Function to find common elements in multiple lists
 def intersect_lists(lists):
     return list(set.intersection(*map(set, lists)))
@@ -39,13 +48,19 @@ if doc:
             if common_serial_numbers:
                 tag_combination_name = "_".join(combination)  # Collection name based on tag combination
                 collection_name = tag_combination_name.replace(" ", "_")  # Replace spaces with underscores
+                
+                # Prepare the data to insert
+                document_to_insert = {
+                    "tag_name_combination": tag_combination_name,
+                    "total_count": len(common_serial_numbers), # Add total_count field
 
+                    "common_serial_number_list": common_serial_numbers
+                }
+                
                 # Insert the data into the new collection
                 new_coll = db[collection_name]  # Create or access the new collection
-                new_coll.insert_one({
-                    "tag_name_combination": tag_combination_name,
-                    "common_serial_number_list": common_serial_numbers
-                })
+                new_coll.insert_one(document_to_insert)
+        
         print(f"Processed combinations of size {r} out of {len(tags)} tags")
 
 print("Done processing and saved each tag combination into its respective MongoDB collection.")
