@@ -21,8 +21,8 @@ jobs:
           # Install the required packages directly
           pip install beautifulsoup4 cloudinary requests pymongo pillow
         
-      - name: Run get-save-img.py script
+      - name: Run run_file.py script
         env:
           API_DATA: ${{ secrets.API_DATA }}
         run: |
-          python get-save-img.py
+          python run_file.py
